@@ -4,8 +4,6 @@ from lxml import etree
 from lxml.etree import _Element
 
 
-
-
 # Определение пространства имен XML
 namespaces = {
     "ns": "urn:hl7-org:v3",
@@ -17,189 +15,187 @@ namespaces = {
 headers_base_value = {
     "/ns:ClinicalDocument/ns:id": {
         "root": {
-            "@value": "{ns_ClinicalDocument_ns_id_root}", # {org_oid}.100.{mis_number}.51.{system}
             "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.51$",
         },
         "extension": {
-            "@value": "{parent_id}",
-            "type": r"\d+"
+            "@type": r"\d+"
         }
     },
     "/ns:ClinicalDocument/ns:setId": {
         "root": {
-            "@value": "ns_ClinicalDocument_ns_setId_root" # {org_oid}.100.{mis_number}.50.{system}
+            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.50$",
         },
         "extension": {
-            "@value": "{parent_id}"
+            "@type": r"\d+"
         }
     },
     "/ns:ClinicalDocument/ns:versionNumber": {
             "value": {
-                "@value": "{parent_version}"
+                "@type": r"\d+"
             }
         },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[1]": {
         "root": {
-            "@value": "ns_ClinicalDocument_ns_recordTarget_ns_patientRole_ns_id1_root" # {org_oid}.100.{mis_number}.10.{system}
+            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",# {org_oid}.100.{mis_number}.10.{system}
         },
         "extension": {
-            "@value": "{client_id}"
+            "@type": r"\d+"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[2]": {
         "root": {
-            "@value": "{org_oid}.100.{mis_number}.10.{system}"
+            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",
         },
         "extension": {
-            "@value": "{client_id}"
+            "@type": r"\d+"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IdentityCardType": {
         "code": {
-            "@value": "{recordTarget_IdentityCardType_code}"
+            "@type": "^.+$"
         },
         "displayName": {
-            "@value": "{recordTarget_IdentityCardType_displayName}"
+            "@type": "^.+$"
         },
         "codeSystem": {
-            "@value": "{recordTarget_IdentityCardType_codeSystem}"
+            "@type": "^.+$"
         },
         "codeSystemName": {
-            "@value": "{recordTarget_IdentityCardType_codeSystemName}"
+            "@type": "^.+$"
         },
         "codeSystemVersion": {
-            "@value": "{recordTarget_IdentityCardType_codeSystemVersion}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:Series":
     {
        "text": {
-           "@value": "{recordTarget_Series}"
+           "@type": "^.+$"
        }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:Number":
     {
         "text": {
-            "@value": "{recordTarget_Number}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueOrgName":
     {
         "text": {
-            "@value": "{recordTarget_IssueOrgName}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueOrgCode":
     {
         "text": {
-            "@value": "{recordTarget_IssueOrgCode}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueDate":
     {
-        "@value": "{recordTarget_IssueDate}"
+        "@type": "^.+$"
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:InsurancePolicyType":
     {
         "code": {
-            "@value": "{recordTarget_InsurancePolicy_code}"
+            "@type": "^.+$"
         },
         "displayName": {
-            "@value": "{recordTarget_InsurancePolicy_displayName}"
+            "@type": "^.+$"
         },
         "codeSystem": {
-            "@value": "{recordTarget_InsurancePolicy_codeSystem}"
+            "@type": "^.+$"
         },
         "codeSystemName": {
-            "@value": "{recordTarget_InsurancePolicy_codeSystemName}"
+            "@type": "^.+$"
         },
         "codeSystemVersion": {
-            "@value": "{recordTarget_InsurancePolicy_codeSystemVersion}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:Number":
     {
         "text": {
-            "@value": "{recordTarget_Number}"
+            "@type": "^.+$"
         },
 
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:Type":
     {
         "code": {
-            "@value": "{recordTarget_addr1_Type_code}"
+            "@type": "^.+$",
         },
         "displayName": {
-            "@value": "{recordTarget_addr1_Type_displayName}"
+            "@type": "^.+$"
         },
         "codeSystem": {
-            "@value": "{recordTarget_addr1_Type_codeSystem}"
+            "@type": "^.+$"
         },
         "codeSystemName": {
-            "@value": "{recordTarget_addr1_Type_codeSystemName}"
+            "@type": "^.+$"
         },
         "codeSystemVersion": {
-            "@value": "{recordTarget_addr1_Type_codeSystemVersion}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:streetAddressLine":
     {
         "text": {
-            "@value": "{recordTarget_addr1_streetAddressLine}"
+            "@type": "^.+$"
         },
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:stateCode":
     {
         "code": {
-            "@value": "{recordTarget_addr1_stateCode_code}"
+            "@type": "^.+$"
         },
         "displayName": {
-            "@value": "{recordTarget_addr1_stateCode_displayName}"
+            "@type": "^.+$"
         },
         "codeSystem": {
-            "@value": "{recordTarget_addr1_stateCode_codeSystem}"
+            "@type": "^.+$"
         },
         "codeSystemName": {
-            "@value": "{recordTarget_addr1_stateCode_codeSystemName}"
+            "@type": "^.+$"
         },
         "codeSystemVersion": {
-            "@value": "{recordTarget_addr1_stateCode_codeSystemVersion}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:residentCode":
     {
         "code": {
-            "@value": "{recordTarget_addr1_residentCode_code}"
+            "@type": "^.+$"
         },
         "displayName": {
-            "@value": "{recordTarget_addr1_residentCode_displayName}"
+            "@type": "^.+$"
         },
         "codeSystem": {
-            "@value": "{recordTarget_addr1_residentCode_codeSystem}"
+            "@type": "^.+$"
         },
         "codeSystemName": {
-            "@value": "{recordTarget_addr1_residentCode_codeSystemName}"
+            "@type": "^.+$"
         },
         "codeSystemVersion": {
-            "@value": "{recordTarget_addr1_residentCode_codeSystemVersion}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:postalCode":
     {
         "text": {
-            "@value": "{recordTarget_addr1_postalCode}"
+            "@type": "^.+$"
         }
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/fias:Address/fias:AOGUID":
     {
         "text": {
-            "@value": "{recordTarget_addr1_fias_Address_fias_AOGUID}"
+            "@type": "^.+$"
         },
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/fias:Address/fias:HOUSEGUID":
     {
         "text": {
-            "@value": "{recordTarget_addr1_fias_Address_fias_HOUSEGUID}"
+            "@type": "^.+$"
         },
     },
 }
@@ -208,11 +204,9 @@ headers_base_value = {
 headers_base_value = {
     "/ns:ClinicalDocument/ns:id": {
         "root": {
-            "@value": "{ns_ClinicalDocument_ns_id_root}",  # {org_oid}.100.{mis_number}.51.{system}
             "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.51$"
         },
         "extension": {
-            "@value": "{parent_id}",
             "@type": r"\d+"
         }
     }
@@ -220,20 +214,20 @@ headers_base_value = {
 
 # Пути к SEMD для различных OID
 semd_paths = {
-    "147": r"V:\ProjectPython\AutoSemd\Эпикриз в стационаре выписной.xml"
+    "147": r"Эпикриз в стационаре выписной.xml"
 }
 
 # TODO: Временное решение
 # Шаблоны базы данных для SQL-запросов и комментариев
 DATABASE_TEMPLATE = {
     "1": {
-        "name": "ns_ClinicalDocument_ns_id_root",
+        "name": "/ns:ClinicalDocument/ns:id@root",
         "alias": "doc_id",
         "sql": "SELECT doc_id",
         "comment": "Уникальный идентификатор документа"
     },
     "2": {
-        "name": "parent_id",
+        "name": "/ns:ClinicalDocument/ns:id@extension",
         "alias": "extention",
         "sql": "SELECT extention",
         "comment": "Уникальный идентификатор документа"
@@ -244,7 +238,7 @@ DATABASE_TEMPLATE = {
 # Шаблон с предопределенными результатами запросов к базе данных
 OTHER_DATABASE_TEMPLATE = {
     "SELECT doc_id": "1.2.643.5.1.13.13.12.2.66.6770.100.1.1.51",
-    "SELECT extention": ""
+    "SELECT extention": "1111111111111"
 }
 
 # TODO: Временное решение
@@ -364,9 +358,9 @@ class SEMD:
         # Проход по заголовкам для заполнения полей SEMD и обновления XML
         for header_key, header_value in headers_base_value.items():
             el: Union[_Element, None] = next(iter(root.xpath(header_key, namespaces=namespaces)), None)
-
             if el is not None:
                 for attr_name, attr_value in header_value.items():
+                    attr_value["@value"] = self._encode_name("{" + header_key + "@" + attr_name + "}")
                     self._semd_fields.append(attr_value)
                     if attr_name in el.attrib:
                         el.set(attr_name, attr_value["@value"])
@@ -382,6 +376,15 @@ class SEMD:
         with open("target.xml", "wb") as f:
             f.write(etree.tostring(self.xml_doc, pretty_print=True, xml_declaration=True, encoding="utf-8"))
 
+    @classmethod
+    def _encode_name(cls, name: str) -> str:
+        # Кодируем символы в их hex-обозначения
+        return name.replace('/', '_x2F_').replace(':', '_x3A_').replace('@', '_x40_')
+    @classmethod
+    def _decode_name(cls, encoded_name: str) -> str:
+        # Декодируем обратно в исходные символы
+        return encoded_name.replace('_x2F_', '/').replace('_x3A_', ':').replace('_x40_', '@')
+
     def __call__(self, *args, **kwargs) -> _Element:
         """
         Обработать поля SEMD и заполнить их значениями из базы данных.
@@ -390,7 +393,7 @@ class SEMD:
         :raises: ValueError, если валидация одного из полей не удалась.
         """
         for field in self._semd_fields:
-            result = OTHER_DATABASE_TEMPLATE.get(find_by_name(field.value), "")
+            result = OTHER_DATABASE_TEMPLATE.get(find_by_name(self._decode_name(field.value)), "")
 
             if not field.type(result):
                 break
