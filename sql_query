@@ -1,0 +1,34 @@
+-- Создание таблицы Semd
+CREATE TABLE Semd (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Первичный ключ',
+    oid VARCHAR(255) UNIQUE NOT NULL COMMENT 'Идентификатор СЭМДа уникальный',
+    code INT NOT NULL COMMENT 'Код СЭМДа, может быть одинаковым если СЭМды отличаются только редакцией'
+) COMMENT='Таблица для хранения информации о СЭМД';
+
+-- Создание таблицы SemdPropertyType
+CREATE TABLE SemdPropertyType (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Первичный ключ',
+    db_name VARCHAR(255) COMMENT 'Имя поля, которое получает SQL запрос',
+    sql_query TEXT COMMENT 'Запрос, который выполняется для получения поля из базы',
+    alias TEXT COMMENT 'Человекочитаемое название поля',
+    comment TEXT COMMENT 'Описание поля'
+) COMMENT='Таблица для хранения полей необходимых для СЭМД';
+
+-- Создание таблицы SemdProperty
+CREATE TABLE SemdProperty (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Первичный ключ',
+    oid VARCHAR(255) UNIQUE NOT NULL COMMENT 'Уникальный идентификатор СЭМДа для поля',
+    xpath_name TEXT NOT NULL COMMENT 'Путь до поля в эталонной XML',
+    semdPropertyType_id INT COMMENT 'Ссылка на тип поля',
+    FOREIGN KEY (semdPropertyType_id) REFERENCES SemdPropertyType(id)
+) COMMENT='Таблица для хранения свойств СЭМД';
+
+-- Вспомогательная таблица для связи многие ко многим между Semd и SemdProperty
+CREATE TABLE Semd_SemdProperty (
+    semd_id INT COMMENT 'Ссылка на СЭМД',
+    semdProperty_id INT COMMENT 'Ссылка на свойство СЭМД',
+    PRIMARY KEY (semd_id, semdProperty_id),
+    FOREIGN KEY (semd_id) REFERENCES Semd(id),
+    FOREIGN KEY (semdProperty_id) REFERENCES SemdProperty(id)
+) COMMENT='Вспомогательная таблица для связи многие ко многим между СЭМД и свойствами СЭМД';
+
