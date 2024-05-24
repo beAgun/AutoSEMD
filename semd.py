@@ -11,6 +11,9 @@ namespaces = {
     "address": "urn:hl7-ru:address",
     "fias": "urn:hl7-ru:fias"
 }
+
+xpath_comment = "/preceding-sibling::comment()[1]"
+
 # Определение базовых значений заголовков с регулярными выражениями для валидации
 headers_base_value = {
     "/ns:ClinicalDocument/ns:id": {
@@ -93,7 +96,10 @@ headers_base_value = {
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueDate":
     {
-        "@type": "^.+$"
+        "value": {
+            "@type": "^.+$"
+        }
+
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:InsurancePolicyType":
     {
@@ -198,18 +204,6 @@ headers_base_value = {
             "@type": "^.+$"
         },
     },
-}
-
-# для теста
-headers_base_value = {
-    "/ns:ClinicalDocument/ns:id": {
-        "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.51$"
-        },
-        "extension": {
-            "@type": r"\d+"
-        }
-    }
 }
 
 # Пути к SEMD для различных OID
@@ -359,6 +353,10 @@ class SEMD:
         for header_key, header_value in headers_base_value.items():
             el: Union[_Element, None] = next(iter(root.xpath(header_key, namespaces=namespaces)), None)
             if el is not None:
+                comment = next(iter(root.xpath(header_key + xpath_comment, namespaces=namespaces)), None)
+                if comment is not None:
+                    header_value = {key: {**value, "@req": re.search(r'\[\d+\.\.\d+\]', comment.text).group(0) if re.search(r'\[\d+\.\.\d+\]', comment.text) else "[0..0]"} for key, value in header_value.items()}
+                    header_value = {key: {**value, "@alias": re.search(r'\[\d+\.\.\d+\] (.*)', comment.text).group(1) if re.search(r'\[\d+\.\.\d+\]', comment.text) else "Not alias"} for key, value in header_value.items()}
                 for attr_name, attr_value in header_value.items():
                     attr_value["@value"] = self._encode_name("{" + header_key + "@" + attr_name + "}")
                     self._semd_fields.append(attr_value)
@@ -410,5 +408,5 @@ class SEMD:
 
 # Создание и обработка объекта SEMD
 a = SEMD("147")
-a()
 a.save()
+
