@@ -3,142 +3,12 @@ from typing import Union, Iterator, Iterable
 
 from lxml import etree
 from lxml.etree import _Element
+from sqlalchemy import text
+from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy import create_engine, text
-
-DATABASES = {
-    "p51vms": {
-        "engine": "mysql+mysqldb",
-        "user": "dbuser",
-        "password": "dbpassword",
-        "host": "p51vms",
-        "port": 3306,
-        "database": "s11",
-        "charset": "utf8",
-        "IEMK_ORG_ID": 3196,
-        "B15_MODE": False,
-    }
-}
-
-DATABASE_CONFIG = DATABASES["p51vms"]
-engine_url = (
-    "{engine}://{user}:{password}@{host}:{port}/{database}?charset=utf8".format(
-        **DATABASE_CONFIG
-    )
-)
-
-engine = create_engine(engine_url)
-
-
-# Определение пространства имен XML
-namespaces = {
-    "ns": "urn:hl7-org:v3",
-    "identity": "urn:hl7-ru:identity",
-    "address": "urn:hl7-ru:address",
-    "fias": "urn:hl7-ru:fias",
-}
-
-xpath_comment = "/preceding-sibling::comment()[1]"
-
-# Определение базовых значений заголовков с регулярными выражениями для валидации
-headers_base_value = {
-    "/ns:ClinicalDocument/ns:id": {
-        "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.51$",
-        },
-        "extension": {"@type": r"\d+"},
-    },
-    "/ns:ClinicalDocument/ns:setId": {
-        "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.50$",
-        },
-        "extension": {"@type": r"\d+"},
-    },
-    "/ns:ClinicalDocument/ns:versionNumber": {"value": {"@type": r"\d+"}},
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[1]": {
-        "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",
-            # {org_oid}.100.{mis_number}.10.{system}
-        },
-        "extension": {"@type": r"\d+"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[2]": {
-        "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",
-        },
-        "extension": {"@type": r"\d+"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IdentityCardType": {
-        "code": {"@type": "^.+$"},
-        "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
-        "codeSystemVersion": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:Series": {
-        "text": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:Number": {
-        "text": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueOrgName": {
-        "text": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueOrgCode": {
-        "text": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IssueDate": {
-        "value": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:InsurancePolicyType": {
-        "code": {"@type": "^.+$"},
-        "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
-        "codeSystemVersion": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:Number": {
-        "text": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:Type": {
-        "code": {
-            "@type": "^.+$",
-        },
-        "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
-        "codeSystemVersion": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:streetAddressLine": {
-        "text": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:stateCode": {
-        "code": {"@type": "^.+$"},
-        "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
-        "codeSystemVersion": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:residentCode": {
-        "code": {"@type": "^.+$"},
-        "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
-        "codeSystemVersion": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:postalCode": {
-        "text": {"@type": "^.+$"}
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/fias:Address/fias:AOGUID": {
-        "text": {"@type": "^.+$"},
-    },
-    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/fias:Address/fias:HOUSEGUID": {
-        "text": {"@type": "^.+$"},
-    },
-}
-
-# Пути к SEMD для различных OID
-semd_paths = {"147": r"Эпикриз в стационаре выписной.xml"}
+from app.database import engine
+from app.models import SemdProperty, SemdPropertyType, Semd, Semd_SemdProperty
+from config.settings import semd_paths, headers_base_value, namespaces, xpath_comment
 
 
 class Type:
@@ -219,16 +89,35 @@ class SEMDFields:
 
 class SEMD:
     """
-    Класс для обработки SEMD XML документа.
+    Класс SEMD представляет сущность для работы с XML SEMD документом.
+    Позволяет заполнение XML на основе данных из БД,
+    а также обрабатывает создание сериализованного XML файла.
+
+    Attributes:
+        code (int): Идентификатор объекта.
+        oid (str): Идентификатор объекта (OID).
+        xml_path (str): Путь к исходному XML.
+        xml_doc (_Element): Загруженный XML документ после обработки.
+        _semd_fields (SEMDFields): Список обрабатываемых полей XML.
+
+    Methods:
+        _create_header_xml: Создает XML заголовок и инициализирует поля SEMD.
+        save: Сохраняет измененный XML документ в файл.
+        _encode_name: Кодируем символы специальных знаков для использования в XML.
+        _decode_name: Декодирует обратно значения атрибутов.
+        _get_first_or_none: Возвращает первый элемент или None из итерируемого.
+        create_fields_in_database: Создает соответствующие поля в БД, если они отсутствуют.
     """
 
-    def __init__(self, oid: str):
+    def __init__(self, oid: str, code: int):
         """
         Инициализация объекта SEMD.
 
         :param oid: Идентификатор объекта (OID).
+        :param code: Идентификатор объекта (code).
         """
-        self.oid = str(oid)
+        self.code = code
+        self.oid = oid
         self.xml_path: str = semd_paths.get(self.oid, None)
         self.xml_doc = self._create_header_xml() if self.xml_path else None
 
@@ -301,7 +190,15 @@ class SEMD:
 
     @classmethod
     def _encode_name(cls, name: str) -> str:
-        # Кодируем символы в их hex-обозначения
+        """
+        Кодирует символы в строке для предотвращения проблем XML.
+
+        :param name: Строка, которую необходимо закодировать.
+        :return: Закодированная строка.
+        """
+        # Добавим комментарий ниже для уточнения причины энкодинга
+        # Кодируем символы в их hex-обозначения, чтобы предотвратить конфликты при использовании их в качестве имен XML элементов
+
         return name.replace("/", "_x2F_").replace(":", "_x3A_").replace("@", "_x40_")
 
     @classmethod
@@ -325,11 +222,36 @@ class SEMD:
         :raises: ValueError, если валидация одного из полей не удалась.
         """
         for field in self._semd_fields:
-            result = OTHER_DATABASE_TEMPLATE.get(
-                find_by_name(self._decode_name(field.value)), ""
+
+            session = sessionmaker(bind=engine)()
+
+            semd_property_type = (
+                session.query(SemdPropertyType)
+                .filter_by(
+                    id=session.query(SemdProperty)
+                    .filter_by(oid=self.oid, xpath_name=self._decode_name(field.value))
+                    .first()
+                    .semdPropertyType_id
+                )
+                .first()
             )
 
-            if not field.type(result) and (
+            if not (
+                semd_property_type.db_name
+                and semd_property_type.sql_query
+                and semd_property_type.alias
+            ):
+                raise ValueError(
+                    f"Заполните поля db_name, sql_query или alias для семда. \noid = {self.oid} \ncode = {self.code} \nxpath_name = {self._decode_name(field.value)}"
+                )
+
+            result = (
+                session.connection()
+                .execute(text(semd_property_type.sql_query))
+                .fetchone()
+            )
+
+            if not field.type(result[semd_property_type.db_name]) and (
                 field.req.startswith("[0..0]") or field.req.startswith("[0..*]")
             ):
                 el = self._get_first_or_none(
@@ -345,7 +267,7 @@ class SEMD:
 
                 continue
 
-            if not field.type(result):
+            if not field.type(result[semd_property_type.db_name]):
                 break
 
             field.__setattr__("in_xml", result)
@@ -360,44 +282,62 @@ class SEMD:
         raise ValueError("Валидация не прошла для одного из полей")
 
     def create_fields_in_database(self) -> None:
-
+        """
+        Создает поля в базе данных на основе информации из семантических полей, если они еще не существуют.
+        Операция выполняется для трех связанных таблиц, обновляя связи для актуализации данных.
+        """
         for field in self._semd_fields:
-            result = OTHER_DATABASE_TEMPLATE.get(
-                find_by_name(self._decode_name(field.value)), ""
-            )
 
-            if not field.type(result) and (
-                field.req.startswith("[0..0]") or field.req.startswith("[0..*]")
-            ):
-                el = self._get_first_or_none(
-                    self.xml_doc.xpath(
-                        self._get_first_or_none(
-                            self._decode_name(field.value).split("@"),
-                        ),
-                        namespaces=namespaces,
-                    ),
+            with sessionmaker(bind=engine) as session:
+
+                # Проверка и вставка данных в Semd
+                semd = session.query(Semd).filter_by(oid=self.oid).first()
+                if not semd:
+                    semd = Semd(oid=self.oid, code=self.code)
+                    session.add(semd)
+                    session.commit()
+
+                    print(
+                        f"В Таблице Semd не найдена запись для Документа с oid = {self.oid} и code = {self.code}"
+                    )
+
+                # Проверка и вставка данных в SemdProperty
+                semd_property = (
+                    session.query(SemdProperty)
+                    .filter_by(oid=self.oid, xpath_name=self._decode_name(field.value))
+                    .first()
                 )
-                if el is not None:
-                    el.getparent().remove(el)
 
-                continue
+                if not semd_property:
+                    semd_property_type = SemdPropertyType(
+                        db_name=None, sql_query=None, alias=field.alias, comment=None
+                    )
+                    session.add(semd_property_type)
+                    session.commit()
 
-            if not field.type(result):
-                break
+                    semd_property = SemdProperty(
+                        oid=self.oid,
+                        xpath_name=self._decode_name(field.value),
+                        semdPropertyType_id=semd_property_type.id,
+                    )
+                    session.add(semd_property)
+                    session.commit()
+                    print(
+                        f"В Таблице SemdPropertyType была добавлена запись для Документа с oid = {self.oid}. Alias = {semd_property_type.alias}; id = {semd_property_type.id}"
+                    )
+                    print(
+                        f"В Таблице SemdProperty была добавлена запись для Документа с oid = {self.oid} и xpath_name ={self._decode_name(field.value)}. id = {semd_property.id}"
+                    )
 
-            field.__setattr__("in_xml", result)
-        else:
-            temp_xml_doc = etree.tostring(self.xml_doc, encoding="unicode")
-            temp_xml_doc = temp_xml_doc.format(
-                **{filed.value: filed.in_xml for filed in self._semd_fields}
-            )
-            self.xml_doc = etree.fromstring(temp_xml_doc)
-            return self.xml_doc
-
-        raise ValueError("Валидация не прошла для одного из полей")
-
-
-# Создание и обработка объекта SEMD
-a = SEMD("147")
-# a()
-a.save()
+                # Проверка и вставка данных в Semd_SemdProperty
+                semd_semd_property = (
+                    session.query(Semd_SemdProperty)
+                    .filter_by(semd_id=semd.id, semdProperty_id=semd_property.id)
+                    .first()
+                )
+                if not semd_semd_property:
+                    semd_semd_property = Semd_SemdProperty(
+                        semd_id=semd.id, semdProperty_id=semd_property.id
+                    )
+                    session.add(semd_semd_property)
+                    session.commit()

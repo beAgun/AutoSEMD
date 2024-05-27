@@ -17,7 +17,7 @@ CREATE TABLE SemdPropertyType (
 -- Создание таблицы SemdProperty
 CREATE TABLE SemdProperty (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Первичный ключ',
-    oid VARCHAR(255) UNIQUE NOT NULL COMMENT 'Уникальный идентификатор СЭМДа для поля',
+    oid VARCHAR(255) NOT NULL COMMENT 'Уникальный идентификатор СЭМДа для поля',
     xpath_name TEXT NOT NULL COMMENT 'Путь до поля в эталонной XML',
     semdPropertyType_id INT COMMENT 'Ссылка на тип поля',
     FOREIGN KEY (semdPropertyType_id) REFERENCES SemdPropertyType(id)
