@@ -199,7 +199,13 @@ class SEMD:
         # Добавим комментарий ниже для уточнения причины энкодинга
         # Кодируем символы в их hex-обозначения, чтобы предотвратить конфликты при использовании их в качестве имен XML элементов
 
-        return name.replace("/", "_x2F_").replace(":", "_x3A_").replace("@", "_x40_")
+        return (
+            name.replace("/", "_x2F_")
+            .replace(":", "_x3A_")
+            .replace("@", "_x40_")
+            .replace("[", "_x5B_")
+            .replace("]", "_x5D_")
+        )
 
     @classmethod
     def _decode_name(cls, encoded_name: str) -> str:
@@ -208,6 +214,8 @@ class SEMD:
             encoded_name.replace("_x2F_", "/")
             .replace("_x3A_", ":")
             .replace("_x40_", "@")
+            .replace("_x5B_", "[")
+            .replace("_x5D_", "]")
         )
 
     @staticmethod

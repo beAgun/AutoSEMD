@@ -41,7 +41,6 @@ headers_base_value = {
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[1]": {
         "root": {
             "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",
-            # {org_oid}.100.{mis_number}.10.{system}
         },
         "extension": {"@type": r"\d+"},
     },
@@ -117,6 +116,10 @@ headers_base_value = {
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/fias:Address/fias:HOUSEGUID": {
         "text": {"@type": "^.+$"},
+    },
+    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:telecom": {
+        "use": {"type": "^.+$"},
+        "value": {"type": "^tel:\+\d{11}$"},
     },
 }
 
