@@ -5,7 +5,7 @@ DATABASES = {
         "password": "dbpassword",
         "host": "p51vms",
         "port": 3306,
-        "database": "s12",
+        "database": "s11semd",
         "charset": "utf8",
         "IEMK_ORG_ID": 3196,
         "B15_MODE": False,
@@ -46,15 +46,13 @@ headers_base_value = {
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:id[2]": {
         "root": {
-            "@type": r"^[0-2](\.([1-9][0-9]*|0))+\.100([.]([1-9][0-9]*|0))+\.10$",
+            "@type": r"^.+$",
         },
         "extension": {"@type": r"\d+"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:IdentityCardType": {
         "code": {"@type": "^.+$"},
         "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
         "codeSystemVersion": {"@type": "^.+$"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:IdentityDoc/identity:Series": {
@@ -75,8 +73,6 @@ headers_base_value = {
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:InsurancePolicyType": {
         "code": {"@type": "^.+$"},
         "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
         "codeSystemVersion": {"@type": "^.+$"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/identity:InsurancePolicy/identity:Number": {
@@ -87,8 +83,6 @@ headers_base_value = {
             "@type": "^.+$",
         },
         "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
         "codeSystemVersion": {"@type": "^.+$"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:streetAddressLine": {
@@ -97,15 +91,11 @@ headers_base_value = {
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:stateCode": {
         "code": {"@type": "^.+$"},
         "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
         "codeSystemVersion": {"@type": "^.+$"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/address:residentCode": {
         "code": {"@type": "^.+$"},
         "displayName": {"@type": "^.+$"},
-        "codeSystem": {"@type": "^.+$"},
-        "codeSystemName": {"@type": "^.+$"},
         "codeSystemVersion": {"@type": "^.+$"},
     },
     "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:addr[1]/ns:postalCode": {
@@ -121,6 +111,16 @@ headers_base_value = {
         "use": {"type": "^.+$"},
         "value": {"type": "^tel:\+\d{11}$"},
     },
+    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:patient/ns:name/ns:family": {
+        "text": {"type": "^.+$"},
+    },
+    "/ns:ClinicalDocument/ns:recordTarget/ns:patientRole/ns:patient/ns:name/ns:given": {
+        "text": {"@type": "^.+$"},
+    },
 }
 
-semd_paths = {"147": r"props/Эпикриз в стационаре выписной.xml"}
+
+semd_paths = {
+    "147": r"props/147.xml",
+    "81": r"props/81.xml",
+}

@@ -155,8 +155,12 @@ class SEMD:
                         key: {
                             **value,
                             "@alias": (
-                                re.search(r"\[\d+\.\.\d+\] (.*)", comment.text).group(1)
-                                if re.search(r"\[\d+\.\.\d+\]", comment.text)
+                                re.search(r"\[\d+\.\.[1\*]\] (.*)", comment.text).group(
+                                    1
+                                )
+                                + " -> "
+                                + key
+                                if re.search(r"\[\d+\.\.[1\*]\]", comment.text)
                                 else "Not alias"
                             ),
                         }
@@ -237,7 +241,7 @@ class SEMD:
                 session.query(SemdPropertyType)
                 .filter_by(
                     id=session.query(SemdProperty)
-                    .filter_by(oid=self.oid, xpath_name=self._decode_name(field.value))
+                    .filter_by(xpath_name=self._decode_name(field.value))
                     .first()
                     .semdPropertyType_id
                 )
@@ -258,8 +262,8 @@ class SEMD:
                 .execute(text(semd_property_type.sql_query))
                 .fetchone()
             )
-
-            if not field.type(result[semd_property_type.db_name]) and (
+            # TODO: Обработать ошибку что в result может не оказаться атрибута с именем db_name
+            if not field.type(str(result.__getattr__(semd_property_type.db_name))) and (
                 field.req.startswith("[0..0]") or field.req.startswith("[0..*]")
             ):
                 el = self._get_first_or_none(
@@ -274,11 +278,11 @@ class SEMD:
                     el.getparent().remove(el)
 
                 continue
-
-            if not field.type(result[semd_property_type.db_name]):
+            # TODO: Обработать ошибку что в result может не оказаться атрибута с именем db_name
+            if not field.type(str(result.__getattr__(semd_property_type.db_name))):
                 break
-
-            field.__setattr__("in_xml", result)
+            # TODO: Обработать ошибку что в result может не оказаться атрибута с именем db_name
+            field.__setattr__("in_xml", result.__getattr__(semd_property_type.db_name))
         else:
             temp_xml_doc = etree.tostring(self.xml_doc, encoding="unicode")
             temp_xml_doc = temp_xml_doc.format(
@@ -296,7 +300,7 @@ class SEMD:
         """
         for field in self._semd_fields:
 
-            with sessionmaker(bind=engine) as session:
+            with sessionmaker(bind=engine)() as session:
 
                 # Проверка и вставка данных в Semd
                 semd = session.query(Semd).filter_by(oid=self.oid).first()
@@ -312,11 +316,33 @@ class SEMD:
                 # Проверка и вставка данных в SemdProperty
                 semd_property = (
                     session.query(SemdProperty)
-                    .filter_by(oid=self.oid, xpath_name=self._decode_name(field.value))
+                    .filter_by(xpath_name=self._decode_name(field.value))
                     .first()
                 )
 
-                if not semd_property:
+                if semd_property:
+                    semd_semd_property = (
+                        session.query(Semd_SemdProperty)
+                        .filter_by(semdProperty_id=semd_property.id)
+                        .all()
+                    )
+
+                    if all(semd.id != el.semd_id for el in semd_semd_property):
+                        session.add(
+                            Semd_SemdProperty(
+                                semd_id=semd.id, semdProperty_id=semd_property.id
+                            )
+                        )
+                        session.commit()
+                        print(
+                            f"В Таблице Semd_SemdProperty была добавлена запись для Документа с oid = {self.oid}. Alias = {field.alias}; semd_id = {semd.id}; "
+                            f"semdProperty_id={semd_property.id}"
+                        )
+                        continue
+                    else:
+                        continue
+
+                else:
                     semd_property_type = SemdPropertyType(
                         db_name=None, sql_query=None, alias=field.alias, comment=None
                     )
@@ -324,7 +350,6 @@ class SEMD:
                     session.commit()
 
                     semd_property = SemdProperty(
-                        oid=self.oid,
                         xpath_name=self._decode_name(field.value),
                         semdPropertyType_id=semd_property_type.id,
                     )

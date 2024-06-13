@@ -24,10 +24,8 @@ class SemdPropertyType(Base):
 class SemdProperty(Base):
     __tablename__ = "SemdProperty"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    oid = Column(String(255), nullable=False)
     xpath_name = Column(Text, nullable=False)
     semdPropertyType_id = Column(Integer, ForeignKey("SemdPropertyType.id"))
-
     semdPropertyType = relationship("SemdPropertyType")
 
 
