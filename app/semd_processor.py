@@ -69,6 +69,7 @@ class SEMDFields:
         Инициализация объекта SEMDFields.
         """
         self.semd_fields: list[SEMDField] = []
+        self.stuff_to_del = set()
 
     def append(self, field: dict):
         """
@@ -84,7 +85,20 @@ class SEMDFields:
 
         :return: Итератор полей SEMD.
         """
+        for idx in sorted(self.stuff_to_del, reverse=True):
+            del self.semd_fields[idx]
+        self.stuff_to_del.clear()
         return iter(self.semd_fields)
+
+    def __getitem__(self, item: int):
+        for idx in self.stuff_to_del:
+            del self.semd_fields[idx]
+        self.stuff_to_del.clear()
+
+        return self.semd_fields[item]
+
+    def unlink(self, semd_field: SEMDField):
+        self.stuff_to_del.add(self.semd_fields.index(semd_field))
 
 
 class SEMD:
@@ -226,6 +240,16 @@ class SEMD:
     def _get_first_or_none(target: Iterable):
         return next(iter(target), None)
 
+    def _delete_tag(self, xpath: str):
+        el = self._get_first_or_none(
+            self.xml_doc.xpath(
+                xpath,
+                namespaces=namespaces,
+            ),
+        )
+        if el is not None:
+            el.getparent().remove(el)
+
     def __call__(self) -> _Element:
         """
         Обработать поля SEMD и заполнить их значениями из базы данных.
@@ -252,10 +276,23 @@ class SEMD:
                 semd_property_type.db_name
                 and semd_property_type.sql_query
                 and semd_property_type.alias
+            ) and not (
+                field.req.startswith("[0..0]") or field.req.startswith("[0..*]")
             ):
                 raise ValueError(
                     f"Заполните поля db_name, sql_query или alias для семда. \noid = {self.oid} \ncode = {self.code} \nxpath_name = {self._decode_name(field.value)}"
                 )
+
+            if semd_property_type.sql_query is None:
+
+                self._delete_tag(
+                    self._get_first_or_none(
+                        self._decode_name(field.value).split("@"),
+                    )
+                )
+
+                self._semd_fields.unlink(field)
+                continue
 
             result = (
                 session.connection()
@@ -266,18 +303,14 @@ class SEMD:
             if not field.type(str(result.__getattr__(semd_property_type.db_name))) and (
                 field.req.startswith("[0..0]") or field.req.startswith("[0..*]")
             ):
-                el = self._get_first_or_none(
-                    self.xml_doc.xpath(
-                        self._get_first_or_none(
-                            self._decode_name(field.value).split("@"),
-                        ),
-                        namespaces=namespaces,
-                    ),
+                self._delete_tag(
+                    self._get_first_or_none(
+                        self._decode_name(field.value).split("@"),
+                    )
                 )
-                if el is not None:
-                    el.getparent().remove(el)
-
+                self._semd_fields.unlink(field)
                 continue
+
             # TODO: Обработать ошибку что в result может не оказаться атрибута с именем db_name
             if not field.type(str(result.__getattr__(semd_property_type.db_name))):
                 break
